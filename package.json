@@ -1,0 +1,45 @@
+{
+    "name" : "postal.federation",
+    "description" : "A base plugin for federating instances of postal.js across various boundaries.",
+    "version" : "0.1.0",
+    "homepage" : "http://github.com/ifandelse/postal.federation",
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/ifandelse/postal.federation.git"
+    },
+	"author" : "Jim Cowart (http://freshbrewedcode.com/jimcowart)",
+    "contributors": [
+        {
+            "name" : "Jim Cowart",
+            "email" : "jim@ifandelse.com",
+            "url" : "http://freshbrewedcode.com/jimcowart"
+        }
+    ],
+	"keywords" : [
+		""
+	],
+    "bugs" : {
+        "email" : "jim@ifandelse.com",
+        "url" : "http://github.com/ifandelse/postal.federation/issues"
+   },
+	"directories" : { "lib" : "lib/node" },
+    "main" : "lib/node/postal.federation.js",
+	"engines" : {
+		"node" : ">=0.4.0"
+	},
+	"dependencies" : {
+		"underscore" : ">=1.1.7"
+	},
+	"bundleDependencies" : [ "underscore" ],
+	"devDependencies" : {},
+    "licenses" : [
+        {
+            "type" : "MIT",
+            "url" : "http://www.opensource.org/licenses/mit-license.php"
+        },
+        {
+            "type" : "GPL",
+            "url" : "http://www.opensource.org/licenses/gpl-3.0.html"
+        }
+    ]
+}
