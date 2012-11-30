@@ -1,7 +1,7 @@
 {
 	"name"    : "postal.federation",
-	"version" : "0.3.1",
-	"main"    : ["lib/browser/postal.federation.js"],
+	"version" : "0.1.0",
+	"main"    : ["lib/postal.federation.js"],
 	"dependencies": {
 		"underscore": "~1.1.7",
 		"postal.js" : "~0.7.3"

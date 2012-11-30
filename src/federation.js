@@ -1,85 +1,61 @@
-// BROWSER semi-uuid - it's ghetto and will need to be replaced
-// the eventual node version won't need this kind of hackery
-if(!postal.utils.getUUID) {
-  postal.utils.getUUID = function() {
-    var s = [];
-    var hexDigits = "0123456789abcdef";
-    for (var i = 0; i < 36; i++) {
-      s[i] = hexDigits.substr(Math.floor(Math.random() * 0x10), 1);
-    }
-    s[14] = "4";  // bits 12-15 of the time_hi_and_version field to 0010
-    s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1);  // bits 6-7 of the clock_seq_hi_and_reserved to 01
-    s[8] = s[13] = s[18] = s[23] = "-";
-    return s.join("");
-  };
-}
+var _enabled = true;
+var _blacklisting = true;
 
 postal.fedx = _.extend({
+
+  _lastOrigin: [],
 
   clients: {},
 
   transports: {},
 
-  knownIds: [ postal.instanceId ],
+  constraints: {},
 
-  manifest: {},
-
-  _processingIds: [],
-
-  addToManifest: function(channel, topic, instanceId) {
-    instanceId = instanceId || postal.instanceId;
-    var manifest = this.manifest[instanceId];
-    if(!manifest) {
-      manifest = this.manifest[instanceId] = {}
+  addClient: function(options) {
+    var client = this.clients[options.id];
+    if(!client) {
+      client = this.clients[options.id] = {
+        activeTransport: options.type
+      };
+      client.send = function(payload, transport) {
+        transport = transport || client.activeTransport;
+        client[transport].send(payload);
+      };
     }
-    if(!manifest[channel]) {
-      manifest[channel] = [ topic ];
-    } else {
-      if(!_.contains(manifest[channel], topic)) {
-        manifest[channel].push(topic);
+    if(!client[options.type]) {
+      client[options.type] = {
+        send: options.send
+      };
+      if(options.postSetup) {
+        options.postSetup();
       }
     }
   },
 
-  getManifest: function(remoteInstance) {
-    return _.reduce(this.manifest, function(memo, mfst, id){
-      if(!remoteInstance || (remoteInstance && id !== remoteInstance)){
-        _.each(mfst, function(topicList, channel){
-          if(!memo[channel]) {
-            memo[channel] = [];
-          }
-          _.each(topicList, function(topic){
-            if(!_.include(memo[channel], topic)) {
-              memo[channel].push(topic);
-            }
-          });
-        });
-      }
-      return memo;
-    }, {});
+  blacklistMode: function() {
+    _blacklisting = true;
   },
 
-  send : function(payload, blacklist) {
-    blacklist = blacklist || this._processingIds;
-    _.each(this.clients, function(client, id) {
-      if(!_.contains(blacklist, id)) {
-        client.send(payload);
-      }
-    }, this);
+  canSendRemote: function(channel, topic) {
+    var channelPresent = this.constraints.hasOwnProperty(channel);
+    var topicMatch = (channelPresent && _.any(this.constraints[channel], function(binding){
+      return postal.configuration.resolver.compare(binding, topic);
+    }));
+
+    return _enabled &&
+      channel !== postal.configuration.SYSTEM_CHANNEL &&
+      (
+        (_blacklisting && (!channelPresent || (channelPresent && !topicMatch))) ||
+          (!_blacklisting && channelPresent && topicMatch)
+        );
   },
 
-  calculateKnownIds : function() {
-    this.knownIds = [postal.instanceId].concat(_.keys(this.clients));
+  disable: function() {
+    _enabled = false;
   },
 
-  signalReady: function(transportName) {
-    if(transportName) {
-      this.transports[transportName].signalReady(this.getManifest());
-    } else {
-      _.each(this.transports, function(transport) {
-        transport.signalReady(this.getManifest());
-      }, this);
-    }
+  enable: function() {
+    _enabled = true;
   },
 
   getFedxWrapper: function(type) {
@@ -90,126 +66,39 @@ postal.fedx = _.extend({
     }
   },
 
-  onFederatedMsg: function(payload) {
+  onFederatedMsg: function(payload, originId) {
+    this._lastOrigin = [originId];
     postal.publish(payload.envelope);
+    this._lastOrigin = [];
   },
 
-  addClient: function(options) {
-    var client = this.clients[options.id];
-    if(!client) {
-      client = this.clients[options.id] = {
-        subscriptions: {},
-        activeTransport: options.type
-      };
-      client.send = function(payload, transport) {
-        transport = transport || client.activeTransport;
-        client[transport].send(payload);
-      };
-      this.calculateKnownIds();
-    }
-    if(!client[options.type]) {
-      client[options.type] = {
-        send: options.send
-      };
-      if(options.postSetup) {
-        options.postSetup();
+  send : function(payload) {
+    _.each(this.clients, function(client, id) {
+      if(!_.include(this._lastOrigin, id)) {
+        client.send(payload);
       }
-      _.each(options.manifest, function(topicList, channel){
-        _.each(topicList, function(topic){
-          this.addClientSubscription(options.id, channel, topic);
-        }, this);
+    }, this);
+  },
+
+  signalReady: function(transportName) {
+    if(transportName) {
+      this.transports[transportName].signalReady();
+    } else {
+      _.each(this.transports, function(transport) {
+        transport.signalReady();
       }, this);
     }
   },
 
-  addClientSubscription: function(id, channel, topic) {
-    var self = this;
-    var subs = self.clients[id].subscriptions;
-    if(!subs[channel]) {
-      subs[channel] = {};
-    }
-    if(!subs[channel][topic]) {
-      subs[channel][topic] = postal.subscribe({
-        channel  : channel,
-        topic    : topic,
-        callback : function(data, env) {
-          env = _.clone(env);
-          env.originId = postal.instanceId;
-          self.clients[id].send(_.extend({
-            envelope: env
-          }, self.getFedxWrapper("message")));
-        }
-      });
-    }
+  whitelistMode: function() {
+    _blacklisting = false;
   }
 
 }, postal.fedx);
 
-postal.subscribe({
-  channel  : postal.configuration.SYSTEM_CHANNEL,
-  topic    : "subscription.created",
-  callback : function(data, env) {
-    postal.fedx.addToManifest(data.channel, data.topic);
-    var payload = _.extend({
-      envelope: {
-        channel  : "postal.federation",
-        topic    : "remote.subscription.created",
-        originId : postal.instanceId,
-        knownIds : postal.fedx.knownIds,
-        data     : { channel: data.channel, topic: data.topic }
-      }
-    }, postal.fedx.getFedxWrapper("subscription.created"));
-    postal.fedx.send(payload);
-  }
-}).withConstraint(function(d, e){
-    return d.channel !== "postal.federation" && d.channel !== postal.configuration.SYSTEM_CHANNEL;
-  });
-
-postal.subscribe({
-  channel  : postal.configuration.SYSTEM_CHANNEL,
-  topic    : "subscription.removed",
-  callback : function(data, env) {
-    if(!postal.utils.getSubscribersFor(data).length) {
-      var payload = _.extend({
-        envelope: {
-          channel  : "postal.federation",
-          topic    : "remote.subscription.removed",
-          originId : postal.instanceId,
-          knownIds : postal.fedx.knownIds,
-          data     : { channel: data.channel, topic: data.topic }
-        }
-      }, postal.fedx.getFedxWrapper("subscription.created"));
-      postal.fedx.send(payload);
-    }
-  }
-}).withConstraint(function(d, e){
-    return d.channel !== "postal.federation" && d.channel !== postal.configuration.SYSTEM_CHANNEL;
-  });
-
-postal.subscribe({
-  channel  : "postal.federation",
-  topic    : "remote.subscription.created",
-  callback : function(d, e) {
-    postal.fedx._processingIds = e.knownIds;
-    postal.fedx.addClientSubscription(e.originId, d.channel, d.topic);
-    postal.fedx._processingIds = [];
-    var env = _.clone(e);
-    env.knownIds = _.union(postal.fedx.knownIds, e.knownIds);
-    env.originId = postal.instanceId;
-    var payload = _.extend({ envelope: env }, postal.fedx.getFedxWrapper("subscription.created"));
-    postal.fedx.send(payload, e.knownIds);
-  }
-});
-
-postal.subscribe({
-  channel  : "postal.federation",
-  topic    : "remote.subscription.removed",
-  callback : function(d, e) {
-    var subs = postal.fedx.clients[e.originId].subscriptions;
-    if(subs[d.channel] && subs[d.channel][d.topic]) {
-      postal.fedx._processingIds = e.knownIds;
-      subs[d.channel][d.topic].unsubscribe();
-      postal.fedx._processingIds = [];
-    }
+postal.addWireTap(function(data, envelope){
+  if(postal.fedx.canSendRemote(envelope.channel, envelope.topic)) {
+    envelope.originId = envelope.originId || postal.instanceId;
+    postal.fedx.send(_.extend({ envelope: envelope }, postal.fedx.getFedxWrapper('message')));
   }
 });

@@ -3,9 +3,6 @@ postal.addWireTap(function(d, e) {
   console.log("ID: " + postal.instanceId + " " + JSON.stringify(e, null, 4));
 });
 
-
-window.__NAME__ = "PARENT!";
-
 $(function() {
 
   postal.instanceId = "parent";

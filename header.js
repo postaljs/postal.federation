@@ -1,6 +1,6 @@
 /*
  {{{name}}}
- Author: {{{author}}}
- License: Dual licensed MIT (http://www.opensource.org/licenses/mit-license) & GPL (http://www.opensource.org/licenses/gpl-license)
+ Copyright (C) 2012 - {{{author}}}
+ License: Dual licensed MIT & GPL v2.0
  Version {{{version}}}
  */
