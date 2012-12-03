@@ -19,90 +19,110 @@
   }
 }( this, function ( _, postal, global, undefined ) {
 
-  var xframe = (function(window, _, postal) {
-    var XFRAME = "xframe";
-    var _defaults = {
-      autoReciprocate : true,
-      allowedOrigins  : [ window.location.origin ],
-      enabled         : true,
-      originUrl       : window.location.origin
-    };
-    var _config = _defaults;
+  var XFRAME = "xframe";
+  var _defaults = {
+    autoReciprocate : true,
+    allowedOrigins  : [ window.location.origin ],
+    enabled         : true,
+    originUrl       : window.location.origin
+  };
+  var _config = _defaults;
   
-    var plugin = {
+  var XFrameClient = function(source, instanceId, autoReciprocate) {
+    this.source = source;
+    this.instanceId = instanceId;
+    this.autoReciprocate = autoReciprocate;
+  };
   
-      config: function(cfg){
-        if(cfg) {
-          _config = _.defaults(cfg, _defaults);
-        }
-        return _config;
-      },
+  XFrameClient.prototype.send = function(env) {
+    this.source.postMessage(postal.fedx.transports.xframe.getWrapper('message', env), _config.originUrl || "*");
+  };
   
-      clientOptionsFromEvent : function(event) {
-        var self = this;
-        var payload = event.data;
-        var clientOptions = {
-          id       : payload.instanceId,
-          type     : XFRAME,
-          send     : function(env) {
-            event.source.postMessage(_.defaults({ envelope: env }, self.getXframeWrapper('message')), _config.originUrl || "*");
-          }
-        };
-        if(_config.autoReciprocate){
-          clientOptions.postSetup = function() {
-            event.source.postMessage(self.getXframeWrapper("ready"), _config.originUrl || "*");
-          }
-        }
-        return clientOptions;
-      },
+  XFrameClient.prototype.reciprocate = function() {
+    this.source.postMessage(postal.fedx.transports.xframe.getWrapper('ready'), _config.originUrl || "*");
+  };
   
-      getTargets: function() {
-        var targets = _.map(document.getElementsByTagName('iframe'), function(i) { return i.contentWindow; });
-        if(window.parent && window.parent !== window) {
-          targets.push(window.parent);
-        }
-        return targets;
-      },
-  
-      getXframeWrapper: function(type) {
-        return {
-          postal     : true,
-          type       : type,
-          instanceId : postal.instanceId
-        }
-      },
-  
-      onPostMessage: function( event ) {
-        console.log(event.data);
-        if(this.shouldProcess(event)) {
-          var payload = event.data;
-          if(payload.type === 'ready') {
-            postal.fedx.addClient(this.clientOptionsFromEvent(event));
-          } else {
-            postal.fedx.onFederatedMsg( payload.envelope, payload.instanceId );
-          }
-        }
-      },
-  
-      shouldProcess: function(event) {
-        var hasDomainFilters = !!_config.allowedOrigins.length;
-        return _config.enabled && (hasDomainFilters && _.contains(_config.allowedOrigins, event.origin) || !hasDomainFilters ) && (event.data.postal)
-      },
-  
-      signalReady: function(manifest) {
-        _.each(this.getTargets(), function(target) {
-          target.postMessage(this.getXframeWrapper("ready"),  _config.originUrl || "*");
-        }, this);
+  XFrameClient.prototype.attachToClient = function(client) {
+    if(!client[XFRAME]) {
+      client[XFRAME] = this;
+      if(this.autoReciprocate) {
+        this.reciprocate();
       }
-    };
+    }
+  };
   
-    _. bindAll(plugin);
+  var plugin = postal.fedx.transports.xframe = {
   
-    postal.fedx.transports.xframe = plugin;
+    XFrameClient: XFrameClient,
   
-    window.addEventListener("message", plugin.onPostMessage, false);
+    config: function(cfg){
+      if(cfg) {
+        _config = _.defaults(cfg, _defaults);
+      }
+      return _config;
+    },
   
-  }(window, _, postal));
+    getTargets: function() {
+      var targets = _.map(document.getElementsByTagName('iframe'), function(i) { return i.contentWindow; });
+      if(window.parent && window.parent !== window) {
+        targets.push(window.parent);
+      }
+      return targets;
+    },
+  
+    getWrapper: function(type, envelope) {
+      switch(type) {
+        case 'ready' :
+          return {
+            postal     : true,
+            type       : type,
+            instanceId : postal.instanceId
+          };
+          break;
+        default:
+          return {
+            postal     : true,
+            type       : type,
+            instanceId : postal.instanceId,
+            envelope   : envelope
+          };
+          break;
+      }
+    },
+  
+    onPostMessage: function( event ) {
+      console.log(event.data);
+      if(this.shouldProcess(event)) {
+        var payload = event.data;
+        if(payload.type === 'ready') {
+          postal.fedx.addClient(new XFrameClient(event.source, event.data.instanceId, _config.autoReciprocate), XFRAME);
+        } else {
+          postal.fedx.onFederatedMsg( payload.envelope, payload.instanceId );
+        }
+      }
+    },
+  
+    shouldProcess: function(event) {
+      var hasDomainFilters = !!_config.allowedOrigins.length;
+      return _config.enabled && (hasDomainFilters && _.contains(_config.allowedOrigins, event.origin) || !hasDomainFilters ) && (event.data.postal)
+    },
+  
+    signalReady: function(trgt) {
+      var _targets;
+      if(!trgt) {
+        _targets = this.getTargets();
+      } else {
+        _targets = _.isArray(trgt) ? trgt : [trgt];
+      }
+      _.each(_targets, function(target) {
+        target.postMessage(this.getWrapper("ready"),  _config.originUrl || "*");
+      }, this);
+    }
+  };
+  
+  _. bindAll(plugin);
+  
+  window.addEventListener("message", plugin.onPostMessage, false);
 
   return postal;
 
