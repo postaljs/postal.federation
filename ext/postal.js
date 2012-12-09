@@ -100,7 +100,7 @@
 		this.topic = topic;
 		this.callback = callback;
 		this.priority = DEFAULT_PRIORITY;
-		this.constraints = new Array( 0 );
+		this.filters = new Array( 0 );
 		this.maxCalls = DEFAULT_DISPOSEAFTER;
 		this.onHandled = NO_OP;
 		this.context = null;
@@ -177,7 +177,7 @@
 			if ( !_.isFunction( predicate ) ) {
 				throw "Predicate constraint must be a function";
 			}
-			this.constraints.push( predicate );
+			this.filters.push( predicate );
 			return this;
 		},
 	
@@ -311,7 +311,7 @@
 					// TODO: research faster ways to handle this than _.clone
 					_.each( _.clone( topic ), function ( subDef ) {
 						if ( postal.configuration.resolver.compare( subDef.topic, envelope.topic ) ) {
-							if ( _.all( subDef.constraints, function ( constraint ) {
+							if ( _.all( subDef.filters, function ( constraint ) {
 								return constraint.call(subDef.context, envelope.data, envelope );
 							} ) ) {
 								if ( typeof subDef.callback === 'function' ) {

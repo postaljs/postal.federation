@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Playground</title>
-    <script type="text/javascript" src="../ext/underscore.js"></script>
+    <script type="text/javascript" src="../ext/lodash.underscore.js"></script>
     <script type="text/javascript" src="../ext/jquery-1.8.2.js"></script>
     <script type="text/javascript" src="../ext/postal.js"></script>
     <script type="text/javascript" src="../lib/postal.federation.js"></script>
@@ -22,8 +22,15 @@
         };
 
         postal.instanceId = getUUID();
+        postal.fedx.addFilter([
+            { channel: 'postal',  topic: '#', direction: 'in'  },
+            { channel: 'iframez', topic: '#', direction: 'in'  },
+            { channel: 'parentz', topic: '#', direction: 'out' }
+        ]);
         postal.addWireTap(function(d, e) {
-            console.log("ID: " + postal.instanceId + " " + JSON.stringify(e, null, 4));
+            /*if(e.channel === "postal.federation")
+             console.log("ON: " + postal.instanceId + " - " + d.localId + " knows about " + d.remoteId );*/
+            console.log("ID: " + postal.instanceId + " - " + JSON.stringify(e, null, 4));
         });
         postal.subscribe({
             channel: "iframez",
