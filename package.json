@@ -28,9 +28,11 @@
 		"node" : ">=0.4.0"
 	},
 	"dependencies" : {
-		"underscore" : ">=1.1.7"
+		"underscore" : ">=1.1.7",
+		"postal"     : ">=0.7.3",
+		"riveter"    : "0.1.1"
 	},
-	"bundleDependencies" : [ "underscore" ],
+	"bundleDependencies" : [ "underscore", "postal", "riveter" ],
 	"devDependencies" : {},
     "licenses" : [
         {
