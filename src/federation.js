@@ -32,7 +32,8 @@ if ( !postal.instanceId ) {
 		}
 	}());
 }
-var _ready = false,
+var NO_OP = function() {},
+	_ready = false,
 	_inboundQueue = [],
 	_outboundQueue = [],
 	_signalQueue = [],
@@ -84,8 +85,9 @@ var _ready = false,
 		"federation.ping" : function ( data, callback ) {
 			// TODO: do we want to pong if we've already completed a handshake?
 			data.source.instanceId = data.packingSlip.instanceId;
-			data.source.sendPong( data.packingSlip );
-			if ( !data.source.handshakeComplete ) {
+			if(data.source.handshakeComplete) {
+				data.source.sendPong( data.packingSlip );
+			} else {
 				data.source.sendBundle( [
 					postal.fedx.getPackingSlip( 'pong', data.packingSlip ),
 					postal.fedx.getPackingSlip( 'ping' )
@@ -102,6 +104,9 @@ var _ready = false,
 					source : data.source
 				} );
 				data.source.pings[data.packingSlip.pingData.ticket] = undefined;
+			}
+			if(!_.contains(postal.fedx.clients, data.packingSlip.instanceId)) {
+				postal.fedx.clients.push(data.packingSlip.instanceId);
 			}
 			postal.publish( {
 				channel : "postal.federation",
@@ -172,7 +177,7 @@ FederationClient.prototype.sendMessage = function ( envelope ) {
 	     ( !env.knownIds || !env.knownIds.length ||
 	       (env.knownIds && !_.include( env.knownIds, this.instanceId )))
 		) {
-		env.knownIds = (env.knownIds || []).concat( _.without( _.keys( postal.fedx.clients ), this.instanceId ) );
+		env.knownIds = (env.knownIds || []).concat( _.without( postal.fedx.clients, this.instanceId ) );
 		this.send( postal.fedx.getPackingSlip( 'message', env ) );
 	}
 };
@@ -187,7 +192,7 @@ FederationClient.prototype.onMessage = function ( packingSlip ) {
 	}
 };
 
-FederationClient.prototype.shouldProcess = function ( parsed, meta ) {
+FederationClient.prototype.shouldProcess = function () {
 	return true;
 };
 
@@ -201,7 +206,7 @@ postal.fedx = _.extend( {
 
 	FederationClient : FederationClient,
 
-	clients : {},
+	clients: [],
 
 	transports : {},
 
@@ -277,7 +282,7 @@ postal.fedx = _.extend( {
 
 	/*
 	 signalReady( "transportName", callback );
-	 signalReady( { transportNameA: targetsForA, transportNameB: targetsForB, transportC: true });
+	 signalReady( { transportNameA: targetsForA, transportNameB: targetsForB, transportC: true }, callback);
 	 */
 	signalReady : function ( transport, callback ) {
 		if ( !_ready ) {
