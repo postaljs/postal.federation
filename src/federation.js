@@ -132,7 +132,7 @@ var NO_OP = function() {},
 		}
 	},
 	_matchesFilter = function ( channel, topic, direction ) {
-		var channelPresent = postal.fedx.filters[direction].hasOwnProperty( channel );
+	    var channelPresent = Object.prototype.hasOwnProperty.call(postal.fedx.filters[direction], channel);
 		var topicMatch = (channelPresent && _.any( postal.fedx.filters[direction][channel], function ( binding ) {
 			return postal.configuration.resolver.compare( binding, topic );
 		} ));
@@ -209,8 +209,9 @@ postal.fedx = _.extend( {
 	clients: [],
 
 	transports : {},
-
-	filters : { in : {}, out : {} },
+	
+	// in is a reserved word
+	filters : { "in" : {}, "out" : {} },
 
 	addFilter : function ( filters ) {
 		filters = _.isArray( filters ) ? filters : [ filters ];
@@ -253,7 +254,7 @@ postal.fedx = _.extend( {
 	},
 
 	getPackingSlip : function ( type, env ) {
-		if ( _packingSlips.hasOwnProperty( type ) ) {
+		if (Object.prototype.hasOwnProperty.call(_packingSlips, type)) {
 			return _packingSlips[type].apply( this, Array.prototype.slice.call( arguments, 1 ) );
 		}
 	},
@@ -263,7 +264,7 @@ postal.fedx = _.extend( {
 			_inboundQueue.push( data );
 			return;
 		}
-		if ( _handle.hasOwnProperty( data.packingSlip.type ) ) {
+		if (Object.prototype.hasOwnProperty.call(_handle, data.packingSlip.type)) {
 			_handle[data.packingSlip.type]( data );
 		} else {
 			throw new Error( "postal.federation does not have a message handler for '" + data.packingSlip.type + "'." );
