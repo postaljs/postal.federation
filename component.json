@@ -1,9 +1,9 @@
 {
 	"name"    : "postal.federation",
-	"version" : "0.2.0",
+	"version" : "0.2.1",
 	"main"    : ["lib/postal.federation.js"],
 	"dependencies": {
 		"underscore": "~1.1.7",
-		"postal.js" : "~0.7.3"
+		"postal.js" : "~0.8.2"
 	}
 }

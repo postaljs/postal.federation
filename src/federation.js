@@ -210,7 +210,7 @@ postal.fedx = _.extend( {
 
 	transports : {},
 	
-	// in is a reserved word
+	// in is a reserved word (IE 8)
 	filters : { "in" : {}, "out" : {} },
 
 	addFilter : function ( filters ) {
