@@ -72,6 +72,14 @@ var NO_OP = function() {},
 				envelope : env
 			}
 		},
+    disconnect: function () {
+      return {
+        type : 'federation.disconnect',
+        instanceId : postal.instanceId(),
+        timeStamp : new Date(),
+        envelope : {}
+      }
+    },
 		bundle : function ( packingSlips ) {
 			return {
 				type : 'federation.bundle',
@@ -118,6 +126,9 @@ var NO_OP = function() {},
 				}
 			} );
 		},
+    "federation.disconnect" : function ( data ) {
+      postal.fedx.clients = _.without(postal.fedx.clients, data.source.instanceId);
+    },
 		"federation.message" : function ( data ) {
 			var env = data.packingSlip.envelope;
 			if ( _matchesFilter( env.channel, env.topic, 'in' ) ) {
@@ -181,6 +192,8 @@ FederationClient.prototype.sendMessage = function ( envelope ) {
 		this.send( postal.fedx.getPackingSlip( 'message', env ) );
 	}
 };
+
+FederationClient.prototype.disconnect = NO_OP;
 
 FederationClient.prototype.onMessage = function ( packingSlip ) {
 	if ( this.shouldProcess() ) {
@@ -278,43 +291,67 @@ postal.fedx = _.extend( {
 		_.each( this.transports, function ( transport ) {
 			transport.sendMessage( envelope );
 		} );
-	},
+  },
 
-	/*
-	 signalReady( "transportName", callback );
-	 signalReady( { transportNameA: targetsForA, transportNameB: targetsForB, transportC: true }, callback);
-	 */
-	signalReady : function ( transport, callback ) {
-		if ( !_ready ) {
-			_signalQueue.push( arguments );
-			return;
-		}
-		switch ( arguments.length ) {
-			case 0:
-				transport = _.reduce( this.transports, function ( memo, transport, name ) {
-					memo[name] = true;
-					return memo;
-				}, {} );
-				break;
-			case 1:
-				if ( typeof transport === 'function' ) {
-					callback = transport;
-					transport = _.reduce( this.transports, function ( memo, transport, name ) {
-						memo[name] = true;
-						return memo;
-					}, {} );
-				}
-				break;
-		}
-		if ( Object.prototype.toString.call( transport ) === '[object String]' ) {
-			this.transports[transport].signalReady( [], callback );
-		} else {
-			_.each( transport || this.transports, function ( targets, name ) {
-				targets = Object.prototype.toString.call( targets ) === "[object Boolean]" ? [] : targets;
-				this.transports[name].signalReady( targets, callback );
-			}, this );
-		}
-	}
+  disconnect : function ( transport, callback ) {
+    switch ( arguments.length ) {
+      case 0:
+      transport = this._getTransports();
+      break;
+      case 1:
+      if ( typeof transport === 'function' ) {
+        callback = transport;
+        transport = this._getTransports();
+      }
+      break;
+    }
+    if ( Object.prototype.toString.call( transport ) === '[object String]' ) {
+      this.transports[transport].disconnect([], this.getPackingSlip( 'disconnect' ), callback );  
+    } else {
+      _.each( transport || this.transports, function ( targets, name ) {
+        targets = Object.prototype.toString.call( targets ) === "[object Boolean]" ? [] : targets;
+        this.transports[name].disconnect(targets, this.getPackingSlip( 'disconnect' ), callback );  
+      }, this );
+
+    }
+  },
+
+  _getTransports : function ( ) {
+    return _.reduce( this.transports, function ( memo, transport, name ) {
+      memo[name] = true;
+      return memo;
+    }, {} );     
+  },
+
+  /*
+   signalReady( "transportName", callback );
+   signalReady( { transportNameA: targetsForA, transportNameB: targetsForB, transportC: true }, callback);
+   */
+  signalReady : function ( transport, callback ) {
+    if ( !_ready ) {
+      _signalQueue.push( arguments );
+      return;
+    }
+    switch ( arguments.length ) {
+      case 0:
+      transport = this._getTransports();
+      break;
+      case 1:
+      if ( typeof transport === 'function' ) {
+        callback = transport;
+        transport = this._getTransports();
+      }
+      break;
+    }
+    if ( Object.prototype.toString.call( transport ) === '[object String]' ) {
+      this.transports[transport].signalReady( [], callback );
+    } else {
+      _.each( transport || this.transports, function ( targets, name ) {
+        targets = Object.prototype.toString.call( targets ) === "[object Boolean]" ? [] : targets;
+        this.transports[name].signalReady( targets, callback );
+      }, this );
+    }
+  }
 
 }, postal.fedx );
 
