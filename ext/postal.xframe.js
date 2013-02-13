@@ -2,7 +2,7 @@
  postal.xframe
  Copyright (C) 2012 - Jim Cowart (http://freshbrewedcode.com/jimcowart)
  License: Dual licensed MIT & GPL v2.0
- Version 0.2.2
+ Version 0.2.3
  */
 (function ( root, factory ) {
   if ( typeof module === "object" && module.exports ) {
@@ -25,13 +25,33 @@
   }
   
   // I know, I KNOW. The alternative was very expensive perf & time-wise
-  // so I saved you a perf hit by checking the stinking UA
+  // so I saved you a perf hit by checking the stinking UA. Sigh.
   // I sought the opinion of several other devs. We all traveled
   // to the far east to consult with the wisdom of a monk - turns
   // out he didn't know JavaScript, and our passports were stolen on the
   // return trip. We stowed away aboard a freighter headed back to the
   // US and by the time we got back, no one had heard of IE 8 or 9. True story.
   var useEagerSerialize = /MSIE [8,9]/.test(navigator.userAgent);
+  
+  var _memoRemoteByInstanceId = function(memo, instanceId) {
+  	var proxy = _.find(this.remotes, function(x) {
+  		return x.instanceId === instanceId;
+  	});
+  	if(proxy) { memo.push(proxy); }
+  	return memo;
+  };
+  
+  var _memoRemoteByTarget = function(memo, tgt) {
+  	var proxy = _.find(this.remotes, function(x) {
+  		return x.target === tgt;
+  	});
+  	if(proxy) { memo.push(proxy); }
+  	return memo;
+  };
+  
+  var _disconnectClient = function ( client ) {
+  	client.disconnect();
+  };
   
   var XFRAME = "xframe",
   	NO_OP = function () {},
@@ -42,7 +62,7 @@
   	},
   	_config = _defaults,
   	XFrameClient = postal.fedx.FederationClient.extend( {
-  		transportName : XFRAME,
+  		transportName : "xframe",
   		shouldProcess : function () {
   			var hasDomainFilters = !!_config.allowedOrigins.length;
   			return _config.enabled && (this.options.origin === "*" || (hasDomainFilters && _.contains( _config.allowedOrigins, this.options.origin ) || !hasDomainFilters ));
@@ -51,17 +71,18 @@
   			if ( this.shouldProcess() ) {
   				this.target.postMessage( postal.fedx.transports[XFRAME].wrapForTransport( packingSlip ), this.options.origin );
   			}
-  		}
+  	    }
   	} ),
   	plugin = postal.fedx.transports[XFRAME] = {
-      eagerSerialize : useEagerSerialize,
+  	    eagerSerialize : useEagerSerialize,
   		XFrameClient : XFrameClient,
   		configure : function ( cfg ) {
   			if ( cfg ) {
   				_config = _.defaults( cfg, _defaults );
   			}
   			return _config;
-  		},
+  	    },
+  		//find all iFrames and the parent window if in an iframe
   		getTargets : function () {
   			var targets = _.map( document.getElementsByTagName( 'iframe' ), function ( i ) {
   				var urlHack = document.createElement( 'a' );
@@ -99,23 +120,40 @@
                                 return msgData;
                               },
   		routeMessage : function ( event ) {
-  			var parsed = this.unwrapFromTransport( event.data );
+  		// needs to check for disconnect
+  		var parsed = this.unwrapFromTransport( event.data );
   			if ( parsed.postal ) {
-  				var target = _.find( this.remotes, function ( x ) {
+  				var remote = _.find( this.remotes, function ( x ) {
   					return x.target === event.source;
   				} );
-  				if ( !target ) {
-  					target = new XFrameClient( event.source, { origin : event.origin }, parsed.packingSlip.instanceId );
-  					this.remotes.push( target );
+  				if ( !remote ) {
+  					remote = new XFrameClient( event.source, { origin : event.origin }, parsed.packingSlip.instanceId );
+  					this.remotes.push( remote );
   				}
-  				target.onMessage( parsed.packingSlip );
+  				remote.onMessage( parsed.packingSlip );
   			}
   		},
   		sendMessage : function ( envelope ) {
-  			_.each( this.remotes, function ( target ) {
-  				target.sendMessage( envelope );
-  			} )
+  			_.each( this.remotes, function ( remote ) {
+  				remote.sendMessage( envelope );
+  			} );
   		},
+  	    disconnect: function( options ) {
+  		    options = options || {};
+  			var clients = options.instanceId ?
+  			              // an instanceId value or array was provided, let's get the client proxy instances for the id(s)
+  			              _.reduce(_.isArray( options.instanceId ) ? options.instanceId : [ options.instanceId ], _memoRemoteByInstanceId, [], this) :
+  			              // Ok so we don't have instanceId(s), let's try target(s)
+  			              options.target ?
+  			                // Ok, so we have a targets array, we need to iterate over it and get a list of the proxy/client instances
+  							_.reduce(_.isArray( options.target ) ? options.target : [ options.target ], _memoRemoteByTarget, [], this) :
+  							// aww, heck - we don't have instanceId(s) or target(s), so it's ALL THE REMOTES
+  							this.remotes;
+  			if(!options.doNotNotify) {
+  				_.each( clients, _disconnectClient, this );
+  			}
+  			this.remotes = _.without.apply(null, [ this.remotes ].concat(clients));
+  	    },
   		signalReady : function ( targets, callback ) {
   			targets = _.isArray( targets ) ? targets : [ targets ];
   			targets = targets.length ? targets : this.getTargets();
@@ -134,7 +172,7 @@
   				}
   			}, this );
   		},
-    		addEventListerner : function (obj, eventName, handler, bubble) {
+    		addEventListener : function (obj, eventName, handler, bubble) {
     		    if ("addEventListener" in obj) { // W3C
     		      obj.addEventListener(eventName, handler, bubble);
     		    } else { // IE8
@@ -144,7 +182,8 @@
   	};
   
   _.bindAll( plugin );
-  plugin.addEventListerner(window, "message", plugin.routeMessage, false);
+  plugin.addEventListener(window, "message", plugin.routeMessage, false);
+  
 
   return postal;
 
