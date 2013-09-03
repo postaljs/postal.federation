@@ -12,4 +12,5 @@ This plugin is a required dependency for any other postal.federation plugin, but
 
 ### What plugins exist?
 
-* [postal.xframe](https://github.com/postaljs/postal.xframe) - for federating across iframe/window boundaries
+* [postal.xframe](https://github.com/postaljs/postal.xframe) - for federating across iframe/window & web worker boundaries
+* [postal.socketio](https://github.com/postaljs/postal.socketio) - for federating between browser clients and node.js using [socket.io](http://socket.io/)
