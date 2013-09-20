@@ -9,7 +9,7 @@ if ( !postal.utils.createUUID ) {
 		s[19] = hexDigits.substr( (s[19] & 0x3) | 0x8, 1 );  // bits 6-7 of the clock_seq_hi_and_reserved to 01
 		s[8] = s[13] = s[18] = s[23] = "-";
 		return s.join( "" );
-	}
+	};
 }
 if ( !postal.instanceId ) {
 	postal.instanceId = (function () {
@@ -50,7 +50,7 @@ var NO_OP = function() {},
 				instanceId : postal.instanceId(),
 				timeStamp : new Date(),
 				ticket : postal.utils.createUUID()
-			}
+			};
 		},
 		pong : function ( ping ) {
 			return {
@@ -62,22 +62,30 @@ var NO_OP = function() {},
 					timeStamp : ping.timeStamp,
 					ticket : ping.ticket
 				}
-			}
+			};
 		},
+  		remoteConfig : function ( object ) {
+  			return {
+  				type : 'federation.remoteConfig',
+  				instanceId : postal.instanceId(),
+  				timeStamp : new Date(),
+  				config : object
+  			};
+  		},
 		message : function ( env ) {
 			return {
 				type : 'federation.message',
 				instanceId : postal.instanceId(),
 				timeStamp : new Date(),
 				envelope : env
-			}
+			};
 		},
 	    disconnect: function () {
 	      return {
 	        type : 'federation.disconnect',
 	        instanceId : postal.instanceId(),
 	        timeStamp : new Date()
-	      }
+	      };
 	    },
 		bundle : function ( packingSlips ) {
 			return {
@@ -85,20 +93,21 @@ var NO_OP = function() {},
 				instanceId : postal.instanceId(),
 				timeStamp : new Date(),
 				packingSlips : packingSlips
-			}
+			};
 		}
 	},
 	_handle = {
 		"federation.ping" : function ( data, callback ) {
 			data.source.setInstanceId(data.packingSlip.instanceId);
-			if(data.source.handshakeComplete) {
-				data.source.sendPong( data.packingSlip );
-			} else {
-				data.source.sendBundle( [
-					postal.fedx.getPackingSlip( 'pong', data.packingSlip ),
-					postal.fedx.getPackingSlip( 'ping' )
-				] );
+				var array = [postal.fedx.getPackingSlip( 'pong', data.packingSlip )];
+				if(!data.source.handshakeComplete) {
+		  			array.push(postal.fedx.getPackingSlip( 'ping' ));
 			}
+  				var config = postal.fedx.onFederation(data);
+  				if(config){
+  					array.unshift(postal.fedx.getPackingSlip( 'remoteConfig', config));
+  				}
+  				data.source.sendBundle(array );
 		},
 		"federation.pong" : function ( data ) {
 			data.source.handshakeComplete = true;
@@ -124,6 +133,18 @@ var NO_OP = function() {},
 				}
 			} );
 		},
+  		"federation.remoteConfig" : function ( data ) {
+  			if(data.packingSlip.config && !postal.fedx.restrictRemoteConfig(data)){
+  				var instanceId = data.packingSlip.config.instanceId;
+  				var filters = data.packingSlip.config.filters;
+  				if(instanceId){
+  					postal.instanceId(instanceId)
+  				};
+  				if(filters){
+  					postal.addFilters(filters);
+  				};
+  			}
+  		},
 	    "federation.disconnect" : function ( data ) {
 			postal.fedx.clients = _.without(postal.fedx.clients, data.source.instanceId);
 		    postal.fedx.disconnect({ transport: data.source.transportName, instanceId: data.source.instanceId, doNotNotify: true });
@@ -322,6 +343,8 @@ postal.fedx = _.extend( {
 		}, {} );
 	},
 
+  	onFederation : NO_OP,
+  	restrictRemoteConfig : NO_OP,
 	/*
 	signalReady( callback );
 	signalReady( "transportName" );

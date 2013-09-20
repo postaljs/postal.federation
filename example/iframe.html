@@ -12,15 +12,22 @@
     <script type="text/javascript">
         postal.instanceId("iframe1");
         postal.fedx.addFilter([
-            { channel: 'postal',  topic: '#', direction: 'in'  },
-            { channel: 'iframez', topic: '#', direction: 'in'  },
+            { channel: 'postal',  topic: '#', direction: 'both'  },
             { channel: 'parentz', topic: '#', direction: 'out' }
         ]);
         postal.addWireTap(function(d, e) {
-            console.log("ID: " + postal.instanceId() + " - " + JSON.stringify(e, null, 4));
+        	if(console && console.log){console.log( "ID: " + postal.instanceId() + " " + JSON.stringify( e, null, 4 ) );}
+        	//console.debug( "ID: " + postal.instanceId() ,JSON.stringify( e, null, 4 ) );
         });
         postal.subscribe({
             channel: "iframez",
+            topic: "#",
+            callback: function(d, e) {
+                $("#msgs").append("<div><pre>" + JSON.stringify(e, null, 4) + "</pre></div>");
+            }
+        });
+        postal.subscribe({
+            channel: "postal",
             topic: "#",
             callback: function(d, e) {
                 $("#msgs").append("<div><pre>" + JSON.stringify(e, null, 4) + "</pre></div>");
@@ -37,17 +44,36 @@
                 });
             });
             $("#msg3").on('click', function(){
+                postal.publish({
+                    channel: "postal",
+                    topic: "some.topic",
+                    data: "This message will appear in all"
+                });
+            });
+            $("#msg4").on('click', function(){
                 postal.fedx.disconnect();
             });
 
-            postal.fedx.signalReady();
+       	 postal.publish({
+             channel: "postal",
+             topic: "not yet there",
+             data: "This message will appear in all"
+         });
+            postal.fedx.signalReady(function(){
+            	 postal.publish({
+                     channel: "postal",
+                     topic: "yeah i am there",
+                     data: "This message will appear in all"
+                 });
+            });
         });
     </script>
 </head>
 <body>
 <div>
     <input type="button" value="Send Msg" id="msg2">
-    <input type="button" value="Disconnect" id="msg3">
+    <input type="button" value="Send Broadcast Msg" id="msg3">
+    <input type="button" value="Disconnect" id="msg4">
 </div>
 <div id="msgs"></div>
 </body>

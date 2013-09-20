@@ -3,18 +3,33 @@
 postal.instanceId( "parent" );
 
 postal.fedx.addFilter( [
-	{ channel : 'postal', topic : '#', direction : 'out' },
+	{ channel : 'postal', topic : '#', direction : 'both' },
 	{ channel : 'iframez', topic : '#', direction : 'out' },
 	{ channel : 'parentz', topic : '#', direction : 'in'  }
 ] );
+postal.fedx.onFederation = function(data){
+	  return {
+		instanceId : data.source.instanceId + "_ParentDefined",
+		filter : [
+			{channel: 'channelB', topic: '#', direction: 'in'  }
+		 ]};
+};
 postal.addWireTap( function ( d, e ) {
-	console.log( "ID: " + postal.instanceId() + " " + JSON.stringify( e, null, 4 ) );
+	if(console && console.log){console.log( "ID: " + postal.instanceId() + " " + JSON.stringify( e, null, 4 ) );}
+	//console.debug( "ID: " + postal.instanceId() ,JSON.stringify( e, null, 4 ) );
 } );
 
 $( function () {
 
 	postal.subscribe( {
 		channel : "parentz",
+		topic : "#",
+		callback : function ( d, e ) {
+			$( "#msgs" ).append( "<div><pre>" + JSON.stringify( e, null, 4 ) + "</pre></div>" );
+		}
+	} );
+	postal.subscribe( {
+		channel : "postal",
 		topic : "#",
 		callback : function ( d, e ) {
 			$( "#msgs" ).append( "<div><pre>" + JSON.stringify( e, null, 4 ) + "</pre></div>" );
