@@ -11,8 +11,11 @@ postal.fedx.onFederation = function(data){
 	  return {
 		instanceId : data.source.instanceId + "_ParentDefined",
 		filters : [
-			{channel: 'channelB', topic: '#', direction: 'in'  }
-		 ]};
+		       	{ channel : 'postal', topic : '#', direction : 'both' },
+		    	{ channel : 'iframez', topic : '#', direction : 'out' },
+		    	{ channel : 'parentz', topic : '#', direction : 'in'  }
+		 ]
+	  };
 };
 postal.addWireTap( function ( d, e ) {
 	if(console && console.log){console.log( "ID: " + postal.instanceId() + " " + JSON.stringify( e, null, 4 ) );}

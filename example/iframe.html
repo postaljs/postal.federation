@@ -10,11 +10,9 @@
     <script type="text/javascript" src="../lib/postal.federation.js"></script>
     <script type="text/javascript" src="../ext/postal.xframe.js"></script>
     <script type="text/javascript">
-        postal.instanceId("iframe1");
-        postal.fedx.addFilter([
-            { channel: 'postal',  topic: '#', direction: 'both'  },
-            { channel: 'parentz', topic: '#', direction: 'out' }
-        ]);
+        postal.instanceId(postal.utils.createUUID());
+
+
         postal.addWireTap(function(d, e) {
         	if(console && console.log){console.log( "ID: " + postal.instanceId() + " " + JSON.stringify( e, null, 4 ) );}
         	//console.debug( "ID: " + postal.instanceId() ,JSON.stringify( e, null, 4 ) );
