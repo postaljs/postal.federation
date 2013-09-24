@@ -10,17 +10,28 @@
     <script type="text/javascript" src="../lib/postal.federation.js"></script>
     <script type="text/javascript" src="../ext/postal.xframe.js"></script>
     <script type="text/javascript">
-        postal.instanceId("iframe2");
+        postal.instanceId("iframe2",  {allowInstanceIdUpdates : false});
         postal.fedx.addFilter([
-            { channel: 'postal',  topic: '#', direction: 'in'  },
+            { channel: 'postal',  topic: '#', direction: 'both'  },
             { channel: 'iframez', topic: '#', direction: 'in'  },
             { channel: 'parentz', topic: '#', direction: 'out' }
         ]);
+        postal.fedx.restrictRemoteConfig = function (data){
+        	return true;
+        }
         postal.addWireTap(function(d, e) {
-            console.log("ID: " + postal.instanceId() + " - " + JSON.stringify(e, null, 4));
+        	if(console && console.log){console.log( "ID: " + postal.instanceId() + " " + JSON.stringify( e, null, 4 ) );}
+        	//console.debug( "ID: " + postal.instanceId() , JSON.stringify( e, null, 4 ) );
         });
         postal.subscribe({
             channel: "iframez",
+            topic: "#",
+            callback: function(d, e) {
+                $("#msgs").append("<div><pre>" + JSON.stringify(e, null, 4) + "</pre></div>");
+            }
+        });
+        postal.subscribe({
+            channel: "postal",
             topic: "#",
             callback: function(d, e) {
                 $("#msgs").append("<div><pre>" + JSON.stringify(e, null, 4) + "</pre></div>");
@@ -37,6 +48,13 @@
                 });
             });
             $("#msg3").on('click', function(){
+                postal.publish({
+                    channel: "postal",
+                    topic: "some.topic",
+                    data: "This message will appear in all"
+                });
+            });
+            $("#msg4").on('click', function(){
                 postal.fedx.disconnect();
             });
 
@@ -47,7 +65,8 @@
 <body>
 <div>
     <input type="button" value="Send Msg" id="msg2">
-    <input type="button" value="Disconnect" id="msg3">
+    <input type="button" value="Send Broadcast Msg" id="msg3">
+    <input type="button" value="Disconnect" id="msg4">
 </div>
 <div id="msgs"></div>
 </body>
