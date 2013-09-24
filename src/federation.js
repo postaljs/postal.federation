@@ -138,10 +138,10 @@ var NO_OP = function() {},
   				var instanceId = data.packingSlip.config.instanceId;
   				var filters = data.packingSlip.config.filters;
   				if(instanceId){
-  					postal.instanceId(instanceId)
+  					postal.instanceId(instanceId);
   				};
   				if(filters){
-  					postal.addFilters(filters);
+  					postal.fedx.addFilter(filters);
   				};
   			}
   		},
@@ -343,7 +343,22 @@ postal.fedx = _.extend( {
 		}, {} );
 	},
 
+  	/*
+  	 * handler in the parent to return the configuration data for the signalling client. the input for the function is the ping data.
+  	 * Must return a config data object with instanceId and/or filters. additional data is sent to tht client but not handled.
+  	 * {
+		instanceId : "newInstanceId",
+		filters : [
+		    	{ channel : 'parentz', topic : '#', direction : 'in'  }
+		 ]};
+  	 * postal.fedx.onFederation = function(data){}
+  	*/
   	onFederation : NO_OP,
+
+  	/*
+  	 * handler in the client to prevent a remote config from beeing applied. Must return a boolean value
+  	 * postal.fedx.restrictRemoteConfig = function(data){}
+  	*/
   	restrictRemoteConfig : NO_OP,
 	/*
 	signalReady( callback );
