@@ -10,7 +10,7 @@ postal.fedx.addFilter( [
 postal.fedx.onFederation = function(data){
 	  return {
 		instanceId : data.source.instanceId + "_ParentDefined",
-		filter : [
+		filters : [
 			{channel: 'channelB', topic: '#', direction: 'in'  }
 		 ]};
 };
