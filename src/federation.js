@@ -1,3 +1,4 @@
+postal.utils = postal.utils || {};
 if ( !postal.utils.createUUID ) {
 	postal.utils.createUUID = function () {
 		var s = [];
