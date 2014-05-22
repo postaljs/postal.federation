@@ -236,6 +236,10 @@ postal.fedx = _.extend({
 
     FederationClient: FederationClient,
 
+    packingSlips: _packingSlips,
+
+    handlers: _handle,
+
     clients: [],
 
     transports: {},

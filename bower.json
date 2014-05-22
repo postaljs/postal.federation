@@ -1,6 +1,6 @@
 {
     "name": "postal.federation",
-    "version": "0.2.4",
+    "version": "0.3.0-rc1",
     "description": "A base plugin for federating instances of postal.js across various boundaries.",
     "homepage": "http://github.com/postaljs/postal.federation",
     "keywords": [
@@ -29,7 +29,7 @@
         "mocha": "~1.17.0",
         "requirejs": "~2.1.10",
         "postal.diagnostics": "~0.7.0",
-        "postal.js": "~0.8.11",
+        "postal.js": ">=0.8.11",
         "postal.xframe": "~0.2.3",
         "riveter": "~0.1.2",
         "lodash": "~2.4.1"
