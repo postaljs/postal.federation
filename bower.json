@@ -22,7 +22,6 @@
     "dependencies": {
         "lodash": "~2.4.1",
         "postal.js": ">=0.8.11",
-        "postal.xframe": "~0.2.3",
         "riveter": "~0.1.2"
     },
     "devDependencies": {
