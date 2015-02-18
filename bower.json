@@ -16,7 +16,6 @@
         "url": "git://github.com/postaljs/postal.federation.git"
     },
     "main": [
-        "lib/postal.federation.min.js",
         "lib/postal.federation.js"
     ],
     "dependencies": {
