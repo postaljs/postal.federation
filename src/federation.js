@@ -231,15 +231,15 @@ FederationClient.prototype.setInstanceId = function(id) {
 };
 
 FederationClient.extend = function( props, ctrProps ) {
-    function XFrameClient() {
+    function FedXClient() {
         FederationClient.apply( this, arguments );
     }
 
-    XFrameClient.prototype = Object.create( FederationClient.prototype );
-    _.extend( XFrameClient.prototype, props );
-    _.extend( XFrameClient, ctrProps );
+    FedXClient.prototype = Object.create( FederationClient.prototype );
+    _.extend( FedXClient.prototype, props );
+    _.extend( FedXClient, ctrProps );
 
-    return XFrameClient;
+    return FedXClient;
 };
 
 postal.fedx = _.extend({
