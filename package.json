@@ -35,10 +35,11 @@
     "engines": {
         "node": ">=0.4.0"
     },
+    "peerDependencies": {
+        "postal": ">=0.8.2"
+    },
     "dependencies": {
-        "lodash": "~2.4.1",
-        "postal": ">=0.8.2",
-        "riveter": "0.1.1"
+        "lodash": "~2.4.1"
     },
     "bundleDependencies": [
         "lodash",

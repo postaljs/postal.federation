@@ -8,7 +8,7 @@ if (!postal.createUUID) {
         }
         s[14] = "4"; // bits 12-15 of the time_hi_and_version field to 0010
         /* jshint ignore:start */
-        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01 
+        s[19] = hexDigits.substr((s[19] & 0x3) | 0x8, 1); // bits 6-7 of the clock_seq_hi_and_reserved to 01
         /* jshint ignore:end */
         s[8] = s[13] = s[18] = s[23] = "-";
         return s.join("");
@@ -230,7 +230,17 @@ FederationClient.prototype.setInstanceId = function(id) {
     this.instanceId = id;
 };
 
-riveter(FederationClient);
+FederationClient.extend = function( props, ctrProps ) {
+    function XFrameClient() {
+        FederationClient.apply( this, arguments );
+    }
+
+    XFrameClient.prototype = Object.create( FederationClient.prototype );
+    _.extend( XFrameClient.prototype, props );
+    _.extend( XFrameClient, ctrProps );
+
+    return XFrameClient;
+};
 
 postal.fedx = _.extend({
 
