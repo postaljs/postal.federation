@@ -20,7 +20,12 @@ module.exports = {
 	externals: [
 		{
 			postal: true,
-			lodash: "_"
+			lodash: {
+				root: "_",
+				commonjs: "lodash",
+				commonjs2: "lodash",
+				amd: "lodash"
+			}
 		}
 	],
 	module: {

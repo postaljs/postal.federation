@@ -79,19 +79,6 @@ gulp.task( "coverage", [ "format", "build:es5" ], function( done ) {
 	} );
 } );
 
-var mocha = require( "gulp-spawn-mocha" );
-gulp.task( "mocha", function() {
-	return gulp.src( [ "spec/**/*.spec.js" ], { read: false } )
-		.pipe( mocha( {
-			require: [ "spec/helpers/node-setup.js" ],
-			reporter: "spec",
-			colors: true,
-			inlineDiffs: true,
-			debug: false
-		} ) )
-		.on( "error", console.warn.bind( console ) );
-} );
-
 gulp.task( "lint", function() {
 	return gulp.src( [ "src/**/*.js", "spec/**/*.spec.js" ] )
 	.pipe( eslint() )
