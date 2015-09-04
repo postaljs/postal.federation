@@ -1,49 +1,35 @@
 var _ = require( "lodash" );
 var gulp = require( "gulp" );
 var eslint = require( "gulp-eslint" );
-var header = require( "gulp-header" );
 var uglify = require( "gulp-uglify" );
 var rename = require( "gulp-rename" );
 var gutil = require( "gulp-util" );
 var express = require( "express" );
 var path = require( "path" );
-var pkg = require( "./package.json" );
 var open = require( "open" );
 var port = 3080;
 var jscs = require( "gulp-jscs" );
 var gulpChanged = require( "gulp-changed" );
-var webpack = require( "gulp-webpack" );
+var webpack = require( "webpack-stream" );
 var karma = require( "karma" );
-
-var banner = [ "/**",
-    " * <%= pkg.name %> - <%= pkg.description %>",
-    " * Author: <%= pkg.author %>",
-    " * Version: v<%= pkg.version %>",
-    " * Url: <%= pkg.homepage %>",
-    " * License(s): <%= pkg.license %>",
-    " */",
-    ""
-].join( "\n" );
+var sourcemaps = require( "gulp-sourcemaps" );
 
 gulp.task( "build:es5", [ "format" ], function() {
 	return gulp.src( "src/index.js" )
 		.pipe( webpack( require( "./webpack.config.js" ) ) )
-		.pipe( header( banner, {
-			pkg: pkg
-		} ) )
 		.pipe( rename( "postal.federation.js" ) )
 		.pipe( gulp.dest( "lib/" ) )
+		.pipe( sourcemaps.init( { loadMaps: true } ) )
 		.pipe( uglify( {
+			preserveComments: "license",
 			compress: {
 				/*eslint-disable */
 				negate_iife: false
 				/*eslint-enable */
 			}
 		} ) )
-		.pipe( header( banner, {
-			pkg: pkg
-		} ) )
 		.pipe( rename( "postal.federation.min.js" ) )
+		.pipe( sourcemaps.write( "./" ) )
 		.pipe( gulp.dest( "lib/" ) );
 } );
 

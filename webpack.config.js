@@ -1,5 +1,16 @@
+var pkg = require( "./package.json" );
+var _ = require( "lodash" );
+var webpack = require( "webpack" );
+var banner = [
+	" * <%= pkg.name %> - <%= pkg.description %>",
+	" * Author: <%= pkg.author %>",
+	" * Version: v<%= pkg.version %>",
+	" * Url: <%= pkg.homepage %>",
+	" * License(s): <%= pkg.license %>"
+].join( "\n" );
+var header = _.template( banner )( { pkg: pkg } );
+
 module.exports = {
-	entry: "./src/index.js",
 	output: {
 		library: "postalFedx",
 		libraryTarget: "umd",
@@ -26,5 +37,8 @@ module.exports = {
 				}
 			}
 		]
-	}
+	},
+	plugins: [
+		new webpack.BannerPlugin( header )
+	]
 };
