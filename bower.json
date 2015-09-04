@@ -20,18 +20,7 @@
         "lib/postal.federation.js"
     ],
     "dependencies": {
-        "lodash": "~2.4.1",
-        "postal.js": ">=0.8.11",
-        "riveter": "~0.1.2"
-    },
-    "devDependencies": {
-        "jquery": "~1.10.2",
-        "bootstrap": "~3.0.3",
-        "expect": "0.1.2",
-        "mocha": "~1.17.0",
-        "requirejs": "~2.1.10",
-        "postal.diagnostics": "~0.7.0",
-        "lodash": "~2.4.1",
-        "postal.xframe" : "~0.3.0"
+        "lodash": "^3.x",
+        "postal.js": ">=0.8.11"
     }
 }
