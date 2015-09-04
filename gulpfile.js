@@ -1,3 +1,4 @@
+var _ = require( "lodash" );
 var gulp = require( "gulp" );
 var eslint = require( "gulp-eslint" );
 var header = require( "gulp-header" );
@@ -12,6 +13,7 @@ var port = 3080;
 var jscs = require( "gulp-jscs" );
 var gulpChanged = require( "gulp-changed" );
 var webpack = require( "gulp-webpack" );
+var karma = require( "karma" );
 
 var banner = [ "/**",
     " * <%= pkg.name %> - <%= pkg.description %>",
@@ -48,16 +50,17 @@ gulp.task( "build:es5", [ "format" ], function() {
 gulp.task( "default", [ "build:es5" ] );
 
 function runTests( options, done ) {
-	var karma = require( "karma" ).server;
-	karma.start( _.extend( {
+	var server = new karma.Server( _.extend( {
 		configFile: path.join( __dirname, "/karma.conf.js" ),
 		singleRun: true
 
 		// no-op keeps karma from process.exit'ing gulp
 	}, options ), done || function() {} );
+
+	server.start();
 }
 
-gulp.task( "test", [ "format" ], function( done ) {
+gulp.task( "test", [ "format", "build:es5" ], function( done ) {
 	// There are issues with the osx reporter keeping
 	// the node process running, so this forces the main
 	// test task to not show errors in a notification
@@ -65,6 +68,25 @@ gulp.task( "test", [ "format" ], function( done ) {
 		if ( err !== 0 ) {
 			// Exit with the error code
 			throw err;
+		} else {
+			done( null );
+		}
+	} );
+} );
+
+gulp.task( "coverage", [ "format", "build:es5" ], function( done ) {
+	// There are issues with the osx reporter keeping
+	// the node process running, so this forces the main
+	// test task to not show errors in a notification
+	runTests( {
+		reporters: [ "progress", "coverage" ],
+		preprocessors: {
+			"lib/**/*.js": [ "coverage" ]
+		}
+	}, function( err ) {
+		if ( err !== 0 ) {
+			// Exit with the error code
+			process.exit( err );
 		} else {
 			done( null );
 		}
@@ -92,7 +114,7 @@ gulp.task( "lint", function() {
 } );
 
 gulp.task( "format", [ "lint" ], function() {
-	return gulp.src( [ "**/*.js", "!node_modules/**" ] )
+	return gulp.src( [ "*.js", "{src,spec}/**/*.js" ] )
 		.pipe( jscs( {
 			configPath: ".jscsrc",
 			fix: true

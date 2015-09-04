@@ -247,8 +247,8 @@ export default fedx = postal.fedx = {
 	clients: [],
 	transports: {},
 	filters: {
-		"in": {},
-		"out": {}
+		"in": {}, // jscs:ignore disallowQuotedKeysInObjects
+		out: {}
 	},
 	addFilter: function( filters ) {
 		filters = _.isArray( filters ) ? filters : [ filters ];

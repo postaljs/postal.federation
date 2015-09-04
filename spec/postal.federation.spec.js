@@ -1,31 +1,34 @@
 /* global describe, postal, before, expect, it*/
 describe( "postal.federation - unit tests", function() {
-	var transport = postal.fedx.transports.testTransport = {
+	postal.instanceId( "test123" );
+
+	var transport = postalFedx.transports.testTransport = {
 		remotes: []
 	};
 	var expectedResult = {
-		"type": "federation.bundle",
-		"instanceId": "test123",
-		"packingSlips": [ {
-			"type": "federation.pong",
-			"instanceId": "test123",
-			"timeStamp": "2014-05-22T05:20:52.276Z",
-			"pingData": {
-				"instanceId": "testInstance",
-				"timeStamp": "2014-05-22T05:20:52.037Z",
-				"ticket": "5d533fe0-d8fd-4974-8201-fde67f562a3e"
+		type: "federation.bundle",
+		instanceId: "test123",
+		packingSlips: [ {
+			type: "federation.pong",
+			instanceId: "test123",
+			timeStamp: "2014-05-22T05:20:52.276Z",
+			pingData: {
+				instanceId: "testInstance",
+				timeStamp: "2014-05-22T05:20:52.037Z",
+				ticket: "5d533fe0-d8fd-4974-8201-fde67f562a3e"
 			}
 		}, {
-			"type": "federation.ping",
-			"instanceId": "test123",
-			"timeStamp": "2014-05-22T05:20:52.276Z",
-			"ticket": "0f6399a2-3b63-4d48-8d2d-3aae4d1337dd"
+			type: "federation.ping",
+			instanceId: "test123",
+			timeStamp: "2014-05-22T05:20:52.276Z",
+			ticket: "0f6399a2-3b63-4d48-8d2d-3aae4d1337dd"
 		} ]
 	};
 	var testTarget = {};
 	var remoteInstanceId = "testInstance";
 	var pingId = postal.createUUID();
-	var client = new postal.fedx.FederationClient( testTarget, {}, undefined );
+	var client = new postalFedx.FederationClient( testTarget, {}, undefined );
+
 	client.transportName = "testTransport";
 	client.sentItems = [];
 	client.send = function( msg ) {
@@ -44,7 +47,7 @@ describe( "postal.federation - unit tests", function() {
 		};
 
 		before( function() {
-			postal.fedx.onFederatedMsg( pingSlip );
+			postalFedx.onFederatedMsg( pingSlip );
 		} );
 
 		it( "Should have set client's instanceId", function() {
@@ -75,7 +78,7 @@ describe( "postal.federation - unit tests", function() {
 			}
 		};
 		var handshakeBefore = client.handshakeComplete;
-		var clientsBefore = postal.fedx.clients.length;
+		var clientsBefore = postalFedx.clients.length;
 		var msg;
 		before( function() {
 			postal.subscribe( {
@@ -93,8 +96,8 @@ describe( "postal.federation - unit tests", function() {
 		} );
 		it( "should add client to clients array", function() {
 			expect( clientsBefore ).to.be( 0 );
-			expect( postal.fedx.clients.length ).to.be( 1 );
-			expect( postal.fedx.clients[0] ).to.be( remoteInstanceId );
+			expect( postalFedx.clients.length ).to.be( 1 );
+			expect( postalFedx.clients[0] ).to.be( remoteInstanceId );
 		} );
 		it( "should publish a client.federated message", function() {
 			expect( msg.remoteId ).to.be( remoteInstanceId );
@@ -130,7 +133,7 @@ describe( "postal.federation - unit tests", function() {
 			expect( msg ).to.be( undefined );
 		} );
 		it( "it should publish the remote msg with filters set", function() {
-			postal.fedx.addFilter( {
+			postalFedx.addFilter( {
 				channel: "testy.feddy",
 				topic: "#",
 				direction: "in"
