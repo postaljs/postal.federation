@@ -1,3 +1,8 @@
+## v0.5.1
+
+* Fixed issue where NO_OP reference was not defined.
+* Fixed interim readme formatting.
+
 ## v0.5.0
 
 * Initial conversion to ES6, using webpack and babel.
