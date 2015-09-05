@@ -1,6 +1,6 @@
 {
     "name": "postal.federation",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "A base plugin for federating instances of postal.js across various boundaries.",
     "homepage": "http://github.com/postaljs/postal.federation",
     "keywords": [
@@ -20,6 +20,6 @@
     ],
     "dependencies": {
         "lodash": "^3.x",
-        "postal.js": ">=0.8.11"
+        "postal.js": ">=1.x"
     }
 }
