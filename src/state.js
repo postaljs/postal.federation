@@ -6,6 +6,8 @@ const _defaults = {
 	filterDirection: "both"
 };
 
+export const NO_OP = function() {};
+
 export let state = {
 	_clients: [],
 	_transports: {},
