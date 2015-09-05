@@ -1,6 +1,6 @@
 import { getPackingSlip } from "./packingSlips";
 import { onFederatedMsg } from "./handlers";
-import { state } from "./state";
+import { state, NO_OP } from "./state";
 import postal from "postal";
 
 export default class FederationClient {
