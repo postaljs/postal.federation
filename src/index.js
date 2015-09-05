@@ -2,7 +2,7 @@ import _ from "lodash";
 import postal from "postal";
 import "./postal-utils";
 import { packingSlips, getPackingSlip } from "./packingSlips";
-import { state, disconnect, NO_OP } from "./state";
+import { state, disconnect, NO_OP, configure } from "./state";
 import { handlers, onFederatedMsg, _matchesFilter } from "./handlers";
 import FederationClient from "./FederationClient";
 
@@ -43,6 +43,7 @@ export default fedx = postal.fedx = {
 	canSendRemote: function( channel, topic ) {
 		return _matchesFilter( channel, topic, "out" );
 	},
+	configure: configure,
 	getPackingSlip,
 	onFederatedMsg: onFederatedMsg,
 	sendMessage: function( envelope ) {
