@@ -1,7 +1,7 @@
 {
   "name": "postal.federation",
   "description": "A base plugin for federating instances of postal.js across various boundaries.",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "homepage": "http://github.com/postaljs/postal.federation",
   "repository": {
     "type": "git",

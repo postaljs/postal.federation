@@ -1,3 +1,7 @@
+## v0.5.2
+
+* Restored Missing `configure` method.
+
 ## v0.5.1
 
 * Fixed issue where NO_OP reference was not defined.
