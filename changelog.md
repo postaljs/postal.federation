@@ -1,3 +1,8 @@
+## v0.5.3
+
+* Fixed defect where postal and lodash were not being imported
+* Moved filters and related behavior to their own module
+
 ## v0.5.2
 
 * Restored Missing `configure` method.
