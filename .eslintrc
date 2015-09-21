@@ -12,6 +12,7 @@
 
   "rules": {
     "no-unused-vars": [2, {"vars": "all", "args": "none"}],
+    "no-undef": 2,
     "no-underscore-dangle" : 0
   }
 }

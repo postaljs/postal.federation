@@ -1,14 +1,8 @@
 import { getPackingSlip } from "./packingSlips";
 import { state, disconnect } from "./state";
-
-export function _matchesFilter( channel, topic, direction ) {
-	const channelPresent = Object.prototype.hasOwnProperty.call( fedx.filters[direction], channel );
-	const topicMatch = ( channelPresent && _.any( fedx.filters[direction][channel], function( binding ) {
-		return postal.configuration.resolver.compare( binding, topic );
-	} ) );
-	const blacklisting = state._config.filterMode === "blacklist";
-	return state._config.enabled && ( ( blacklisting && ( !channelPresent || ( channelPresent && !topicMatch ) ) ) || ( !blacklisting && channelPresent && topicMatch ) );
-}
+import { matchesFilter } from "./filters";
+import postal from "postal";
+import _ from "lodash";
 
 export const handlers = {
 	"federation.ping": function( data /*, callback */ ) {
@@ -56,7 +50,7 @@ export const handlers = {
 	},
 	"federation.message": function( data ) {
 		const env = data.packingSlip.envelope;
-		if ( _matchesFilter( env.channel, env.topic, "in" ) ) {
+		if ( matchesFilter( env.channel, env.topic, "in" ) ) {
 			env.lastSender = data.packingSlip.instanceId;
 			postal.publish( env );
 		}

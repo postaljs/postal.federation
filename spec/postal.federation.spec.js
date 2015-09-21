@@ -1,6 +1,7 @@
 /* global describe, postal, before, expect, it*/
 describe( "postal.federation - unit tests", function() {
 	postal.instanceId( "test123" );
+	var postalFedx = postal.fedx;
 
 	var transport = postalFedx.transports.testTransport = {
 		remotes: []
