@@ -2,6 +2,7 @@ import { getPackingSlip } from "./packingSlips";
 import { onFederatedMsg } from "./handlers";
 import { state, NO_OP } from "./state";
 import postal from "postal";
+import _ from "lodash";
 
 export default class FederationClient {
 	constructor( target, options, instanceId ) {

@@ -3,45 +3,21 @@ import postal from "postal";
 import "./postal-utils";
 import { packingSlips, getPackingSlip } from "./packingSlips";
 import { state, disconnect, NO_OP, configure } from "./state";
-import { handlers, onFederatedMsg, _matchesFilter } from "./handlers";
+import { handlers, onFederatedMsg } from "./handlers";
+import filters, { matchesFilter, addFilter, removeFilter } from "./filters";
 import FederationClient from "./FederationClient";
 
-export default fedx = postal.fedx = {
+const fedx = postal.fedx = {
 	FederationClient: FederationClient,
 	packingSlips: packingSlips,
 	handlers: handlers,
 	clients: state._clients,
 	transports: state._transports,
-	filters: {
-		"in": {}, // jscs:ignore disallowQuotedKeysInObjects
-		out: {}
-	},
-	addFilter: function( filters ) {
-		filters = _.isArray( filters ) ? filters : [ filters ];
-		_.each( filters, function( filter ) {
-			filter.direction = filter.direction || state._config.filterDirection;
-			_.each( ( filter.direction === "both" ) ? [ "in", "out" ] : [ filter.direction ], function( dir ) {
-				if ( !this.filters[dir][filter.channel] ) {
-					this.filters[dir][filter.channel] = [ filter.topic ];
-				} else if ( !( _.include( this.filters[dir][filter.channel], filter.topic ) ) ) {
-					this.filters[dir][filter.channel].push( filter.topic );
-				}
-			}, this );
-		}, this );
-	},
-	removeFilter: function( filters ) {
-		filters = _.isArray( filters ) ? filters : [ filters ];
-		_.each( filters, function( filter ) {
-			filter.direction = filter.direction || state._config.filterDirection;
-			_.each( ( filter.direction === "both" ) ? [ "in", "out" ] : [ filter.direction ], function( dir ) {
-				if ( this.filters[dir][filter.channel] && _.include( this.filters[dir][filter.channel], filter.topic ) ) {
-					this.filters[dir][filter.channel] = _.without( this.filters[dir][filter.channel], filter.topic );
-				}
-			}, this );
-		}, this );
-	},
+	filters,
+	addFilter,
+	removeFilter,
 	canSendRemote: function( channel, topic ) {
-		return _matchesFilter( channel, topic, "out" );
+		return matchesFilter( channel, topic, "out" );
 	},
 	configure: configure,
 	getPackingSlip,
@@ -105,6 +81,8 @@ export default fedx = postal.fedx = {
 		}, this );
 	}
 };
+
+export default fedx;
 
 function processSignalQ( args ) {
 	fedx.signalReady.apply( this, args );
