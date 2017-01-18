@@ -27,7 +27,7 @@ export const handlers = {
 			} );
 			data.source.pings[data.packingSlip.pingData.ticket] = undefined;
 		}
-		if ( !_.contains( state._clients, data.packingSlip.instanceId ) ) {
+		if ( !_.includes( state._clients, data.packingSlip.instanceId ) ) {
 			state._clients.push( data.packingSlip.instanceId );
 		}
 		postal.publish( {
@@ -56,7 +56,7 @@ export const handlers = {
 		}
 	},
 	"federation.bundle": function( data ) {
-		_.each( data.packingSlip.packingSlips, function( slip ) {
+		_.forEach( data.packingSlip.packingSlips, function( slip ) {
 			onFederatedMsg( _.extend( {}, data, {
 				packingSlip: slip
 			} ) );

@@ -35,7 +35,7 @@ export function disconnect( options ) {
 		trans = {};
 		trans[options.transport] = state._transports[options.transport];
 	}
-	_.each( trans, function( t ) {
+	_.forEach( trans, function( t ) {
 		t.disconnect( {
 			target: options.target,
 			instanceId: options.instanceId,
