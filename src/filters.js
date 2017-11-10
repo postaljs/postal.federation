@@ -16,7 +16,7 @@ export function addFilter( _filters ) {
 		_.forEach( ( filter.direction === "both" ) ? [ "in", "out" ] : [ filter.direction ], function( dir ) {
 			if ( !filters[ dir ][ filter.channel ] ) {
 				filters[ dir ][ filter.channel ] = [ filter.topic ];
-			} else if ( !( _.include( filters[ dir ][ filter.channel ], filter.topic ) ) ) {
+			} else if ( !( _.includes( filters[ dir ][ filter.channel ], filter.topic ) ) ) {
 				filters[ dir ][ filter.channel ].push( filter.topic );
 			}
 		} );
@@ -28,7 +28,7 @@ export function removeFilter( _filters ) {
 	_.forEach( _filters, function( filter ) {
 		filter.direction = filter.direction || state._config.filterDirection;
 		_.forEach( ( filter.direction === "both" ) ? [ "in", "out" ] : [ filter.direction ], function( dir ) {
-			if ( filters[ dir ][ filter.channel ] && _.include( filters[ dir ][ filter.channel ], filter.topic ) ) {
+			if ( filters[ dir ][ filter.channel ] && _.includes( filters[ dir ][ filter.channel ], filter.topic ) ) {
 				filters[ dir ][ filter.channel ] = _.without( filters[ dir ][ filter.channel ], filter.topic );
 			}
 		} );
