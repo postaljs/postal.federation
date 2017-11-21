@@ -27,7 +27,7 @@ const fedx = postal.fedx = {
 			state._outboundQueue.push( arguments );
 			return;
 		}
-		_.each( this.transports, function( transport ) {
+		_.forEach( this.transports, function( transport ) {
 			transport.sendMessage( envelope );
 		} );
 	},
@@ -75,10 +75,10 @@ const fedx = postal.fedx = {
 			transports[transport] = [ target ];
 			break;
 		}
-		_.each( transports, function( targets, name ) {
+		_.forEach( transports, _.bind( function( targets, name ) {
 			targets = typeof targets === "boolean" ? [] : targets;
 			this.transports[name].signalReady( targets, callback );
-		}, this );
+		}, this ) );
 	}
 };
 

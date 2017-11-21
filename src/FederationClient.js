@@ -38,7 +38,7 @@ export default class FederationClient {
 		const env = _.clone( envelope );
 		if ( this.instanceId && this.instanceId !== env.lastSender &&
 		( !env.knownIds || !env.knownIds.length ||
-		( env.knownIds && !_.include( env.knownIds, this.instanceId ) ) )
+		( env.knownIds && !_.includes( env.knownIds, this.instanceId ) ) )
 		) {
 			env.knownIds = ( env.knownIds || [] ).concat( _.without( state._clients, this.instanceId ) );
 			this.send( getPackingSlip( "message", env ) );
