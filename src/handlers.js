@@ -27,7 +27,7 @@ export const handlers = {
 			} );
 			data.source.pings[data.packingSlip.pingData.ticket] = undefined;
 		}
-		if ( !_.contains( state._clients, data.packingSlip.instanceId ) ) {
+		if ( !_.includes( state._clients, data.packingSlip.instanceId ) ) {
 			state._clients.push( data.packingSlip.instanceId );
 		}
 		postal.publish( {

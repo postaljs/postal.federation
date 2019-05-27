@@ -37,7 +37,7 @@ export function removeFilter( _filters ) {
 
 export function matchesFilter( channel, topic, direction ) {
 	const channelPresent = Object.prototype.hasOwnProperty.call( filters[direction], channel );
-	const topicMatch = ( channelPresent && _.any( filters[ direction ][ channel ], function( binding ) {
+	const topicMatch = ( channelPresent && _.some( filters[ direction ][ channel ], function( binding ) {
 		return postal.configuration.resolver.compare( binding, topic );
 	} ) );
 	const blacklisting = state._config.filterMode === "blacklist";
