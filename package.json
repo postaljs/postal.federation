@@ -63,7 +63,7 @@
     "gulp-sourcemaps": "^1.5.2",
     "gulp-uglify": "^1.4.0",
     "gulp-util": "^3.0.6",
-    "jquery": "^2.1.4",
+    "jquery": "^3.5.0",
     "karma": "^0.13.9",
     "karma-chrome-launcher": "^0.2.0",
     "karma-coverage": "^0.5.1",
