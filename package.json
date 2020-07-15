@@ -46,7 +46,7 @@
     "postal": ">=1.x"
   },
   "dependencies": {
-    "lodash": "3.x"
+    "lodash": "4.x"
   },
   "devDependencies": {
     "babel": "5.x",
