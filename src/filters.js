@@ -16,7 +16,7 @@ export function addFilter( _filters ) {
 		_.each( ( filter.direction === "both" ) ? [ "in", "out" ] : [ filter.direction ], function( dir ) {
 			if ( !filters[ dir ][ filter.channel ] ) {
 				filters[ dir ][ filter.channel ] = [ filter.topic ];
-			} else if ( !( _.include( filters[ dir ][ filter.channel ], filter.topic ) ) ) {
+			} else if ( !( _.includes( filters[ dir ][ filter.channel ], filter.topic ) ) ) {
 				filters[ dir ][ filter.channel ].push( filter.topic );
 			}
 		} );
@@ -28,7 +28,7 @@ export function removeFilter( _filters ) {
 	_.each( _filters, function( filter ) {
 		filter.direction = filter.direction || state._config.filterDirection;
 		_.each( ( filter.direction === "both" ) ? [ "in", "out" ] : [ filter.direction ], function( dir ) {
-			if ( filters[ dir ][ filter.channel ] && _.include( filters[ dir ][ filter.channel ], filter.topic ) ) {
+			if ( filters[ dir ][ filter.channel ] && _.includes( filters[ dir ][ filter.channel ], filter.topic ) ) {
 				filters[ dir ][ filter.channel ] = _.without( filters[ dir ][ filter.channel ], filter.topic );
 			}
 		} );
@@ -37,7 +37,7 @@ export function removeFilter( _filters ) {
 
 export function matchesFilter( channel, topic, direction ) {
 	const channelPresent = Object.prototype.hasOwnProperty.call( filters[direction], channel );
-	const topicMatch = ( channelPresent && _.any( filters[ direction ][ channel ], function( binding ) {
+	const topicMatch = ( channelPresent && _.some( filters[ direction ][ channel ], function( binding ) {
 		return postal.configuration.resolver.compare( binding, topic );
 	} ) );
 	const blacklisting = state._config.filterMode === "blacklist";
